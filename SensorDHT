@@ -1,0 +1,115 @@
+#include <Adafruit_Sensor.h>
+
+#include <DHT.h>
+#include <DHT_U.h>
+
+#include "DHT.h"
+
+#define DHTPINE 4  
+#define DHTPINS 2  
+
+//#define DHTTYPE DHT11   // DHT 11
+#define DHTTYPE DHT22   // DHT 22  (AM2302), AM2321
+//#define DHTTYPE DHT21   // DHT 21 (AM2301)
+
+DHT dhtEntrada(DHTPINE, DHTTYPE);
+DHT dhtSaida(DHTPINS,DHTTYPE);
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println(F("DHTxx test!"));
+
+  dhtEntrada.begin();
+  dhtSaida.begin();
+}
+
+void loop() {
+  // Wait a few seconds between measurements.
+  delay(3000);
+
+  //Sensor de entrada vai ler a temperatura inicial
+  // e = entrada; s = saida;
+
+  float he = dhtEntrada.readHumidity();
+  // Read temperature as Celsius (the default)
+  float te = dhtEntrada.readTemperature();
+  // Read temperature as Fahrenheit (isFahrenheit = true)
+  float fe = dhtEntrada.readTemperature(true);
+
+  // Check if any reads failed and exit early (to try again).
+  if (isnan(he) || isnan(te) || isnan(fe)) {
+    Serial.println(F("Failed to read from DHT sensor!"));
+    return;
+  }
+
+  // Compute heat index in Fahrenheit (the default) FAHRENHEIT DA ENTRADA
+  float hife = dhtEntrada.computeHeatIndex(fe, he);
+  // Compute heat index in Celsius (isFahreheit = false) CELSIUS DA ENTRADA
+  float hice = dhtEntrada.computeHeatIndex(te, he, false);
+   
+
+   // Sensor de saída leitura da temperatura final
+  float hs = dhtSaida.readHumidity();
+  // Read temperature as Celsius (the default)
+  float ts = dhtSaida.readTemperature();
+  // Read temperature as Fahrenheit (isFahrenheit = true)
+  float fs = dhtSaida.readTemperature(true);
+
+  // Check if any reads failed and exit early (to try again).
+  if (isnan(hs) || isnan(ts) || isnan(fs)) {
+    Serial.println(F("Failed to read from DHT sensor!"));
+    return;
+  }
+
+  // Compute heat index in Fahrenheit (the default) FAHRENHEIT DA SAIDA
+  float hifs = dhtSaida.computeHeatIndex(fs, hs);
+  // Compute heat index in Celsius (isFahreheit = false) CELSIUS DA SAIDA
+  float hics = dhtSaida.computeHeatIndex(ts, hs, false);
+
+  //Impressão do sensor INICIAL/ENTRADA
+  Serial.print(F("Umidade Inicial: "));
+  Serial.print(he);
+  Serial.print(F("%  Temperatura Inicial: "));
+  Serial.print(te);
+  Serial.println(F("°C "));
+  //Serial.print(fe);
+  //Serial.print(F("°F  Heat index E: "));
+  //Serial.print(hice);
+ // Serial.print(F("°C "));
+ // Serial.print(hife);
+  //Serial.println(F("°F"));
+
+  //Impressão do sensor FINAL/SAIDA
+  Serial.print(F("Umidade Final : "));
+  Serial.print(hs);
+  Serial.print(F("%  Temperatura Final: "));
+  Serial.print(ts);
+  Serial.println(F("°C "));
+  //Serial.print(fs);
+ // Serial.print(F("°F  Heat index S: "));
+ // Serial.print(hics);
+ // Serial.print(F("°C "));
+  //Serial.print(hifs);
+ // Serial.println(F("°F"));
+  
+
+  //Calculo da variação da temperatura
+  float varTempC = ts-te;
+  if (varTempC < 0){
+    varTempC = varTempC*-1;
+      }
+  float varHum = hs-he;
+  if (varHum < 0){
+    varHum = varHum*-1;
+      }
+  
+  //Impressão da VARIAÇÃO DA UMIDADE e TEMPERATURA EM C
+  Serial.print(F("Variação de Umidade: "));
+  Serial.print(varHum);
+  Serial.print(F("%  Variação de Temperatura: "));
+  Serial.print(varTempC);
+  Serial.println(F("°C "));
+  
+
+ 
+}
